@@ -47,6 +47,26 @@ sequenceDiagram
   Scheduler->>Scheduler: liberar slot y drenar cola
 ```
 
+### Integración con ElevenLabs y Twilio
+- Llamadas salientes: **Twilio outbound-call** de ElevenLabs
+  - Endpoint: `POST /v1/convai/twilio/outbound-call`
+  - Header: `xi-api-key`
+  - Doc: [Outbound call](https://elevenlabs.io/docs/api-reference/twilio/outbound-call)
+- Conteo de llamadas "activas": **Batch Calling List** de ElevenLabs
+  - Endpoint: `GET /v1/convai/batch-calling/workspace`
+  - Estados de batch: `pending`, `in_progress`, `completed`, `failed`, `cancelled` (se consideran activas las `in_progress` por defecto, configurable por env)
+  - Estrategia de conteo configurable:
+    - `dispatched`: suma `total_calls_dispatched` en batches activos
+    - `batches`: cuenta 1 por batch activo
+  - Doc: [Batch Calling List](https://elevenlabs.io/docs/agents-platform/api-reference/batch-calling/list)
+- Webhooks: este servicio libera slots cuando recibe `completed`, `failed` o `cancelled`.
+
+### Suposiciones
+- Usaremos **ElevenLabs (Agents Platform)** como proveedor de voz.
+- Usaremos **Twilio** (vía ElevenLabs outbound-call) para conectar las llamadas salientes.
+- Guardaremos **listados/cola en memoria** en este prototipo; en la implementación final deben persistirse en **DB/Redis**.
+- El **límite de concurrencia** lo proveerás por configuración (env var `ELEVENLABS_CONCURRENCY_LIMIT`).
+
 ### Requisitos
 - Node 18+ (o superior)
 
